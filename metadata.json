@@ -1,0 +1,8 @@
+{
+  "name": "8mpr create a draft",
+  "description": "basketball game\n",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
