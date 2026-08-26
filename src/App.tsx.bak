@@ -2046,7 +2046,7 @@ export default function App() {
                   >
                     <div className="flex flex-col items-center w-full group-active:scale-95 group-active:translate-y-[2px] transition-transform duration-200">
                       <div className="w-16 h-16 sm:w-20 sm:h-20 mb-2 relative flex items-center justify-center">
-                        <img src={logoImg} alt="8MPR Hoops Logo" className="w-20 h-20 object-contain" />
+                        <img src="/logo.png" alt="8MPR Hoops Logo" className="w-20 h-20 object-contain" />
                       </div>
                       <span className="text-white text-[10px] sm:text-[11px] font-black uppercase tracking-widest font-sans text-center whitespace-nowrap">
                          {isCustomDraft ? 'Custom Draft' : 'Daily Trivia'}
@@ -3193,7 +3193,7 @@ export default function App() {
                       Welcome to the 8-Man Playoff Rotation!
                     </h2>
                     <div className="flex items-center justify-center shrink-0 mb-2 md:mb-3">
-                      <img src={logoImg} alt="8MPR Hoops Logo" className="w-32 sm:w-40 md:w-48 object-contain drop-shadow-md" />
+                      <img src="/logo.png" alt="8MPR Hoops Logo" className="w-32 sm:w-40 md:w-48 object-contain drop-shadow-md" />
                     </div>
                 
                 <div className="w-full flex-1 min-h-0 overflow-y-auto bg-[#19223e]/90 backdrop-blur-md rounded-xl p-4 sm:p-5 md:p-6 border-2 border-slate-700/60 shadow-lg text-left custom-scrollbar">
