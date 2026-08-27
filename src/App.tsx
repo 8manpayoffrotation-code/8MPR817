@@ -15,6 +15,13 @@ const normalizeString = (str: string) => {
   return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 };
 
+const getPlayerKey = (name: string) => {
+  return normalizeString(name)
+    .toLowerCase()
+    .replace(/[^a-z]/g, '')
+    .replace(/(jr|sr|iii|ii)$/, '');
+};
+
 const HoopIcon = ({ className }: { className?: string }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -201,10 +208,11 @@ const parseAwardsCsv = (csvText: string, type: string) => {
       
       pNames.forEach(name => {
          let cleanName = name.replace(/ [CFG]$/, '').trim();
-         if (!awardsBank[cleanName]) {
-           awardsBank[cleanName] = { "All-NBA": [], "All-Rookie": [], "All-Defense": [] };
+         let key = getPlayerKey(cleanName);
+         if (!awardsBank[key]) {
+           awardsBank[key] = { "All-NBA": [], "All-Rookie": [], "All-Defense": [] };
          }
-         awardsBank[cleanName][type].push({ season, team });
+         awardsBank[key][type].push({ season, team });
       });
     }
   }
@@ -834,7 +842,7 @@ export default function App() {
       }
 
       if (fc.award && fc.award !== 'All-Star') {
-        const pAwards = awardsBank[player.name]?.[fc.award] || [];
+        const pAwards = awardsBank[getPlayerKey(player.name)]?.[fc.award] || [];
         if (pAwards.length === 0) return;
         const hasAward = pAwards.some(aw => {
           let pass = true;
@@ -909,7 +917,7 @@ export default function App() {
           if (fc.award === 'All-Star') {
             if (player.allStarYears.length < fc.minAwards) return;
           } else {
-            const pAwards = awardsBank[player.name]?.[fc.award] || [];
+            const pAwards = awardsBank[getPlayerKey(player.name)]?.[fc.award] || [];
             if (pAwards.length < fc.minAwards) return;
           }
         }
@@ -919,7 +927,7 @@ export default function App() {
           if (fc.awardSeason && normalizeSeason(formatSeasonDisplay(season.season)) !== normalizeSeason(fc.awardSeason)) return;
           if (fc.awardDecade && (asgYear < Number(fc.awardDecade) || asgYear >= Number(fc.awardDecade) + 10)) return;
         } else if (fc.award) {
-          const pAwards = awardsBank[player.name]?.[fc.award] || [];
+          const pAwards = awardsBank[getPlayerKey(player.name)]?.[fc.award] || [];
           const selectedNormalized = normalizeSeason(formatSeasonDisplay(season.season));
           const hasAward = pAwards.some(aw => {
             let pass = true;
@@ -1717,7 +1725,7 @@ export default function App() {
                     if (fc.award === 'All-Star') {
                         if (player.allStarYears.length < fc.minAwards) isValid = false;
                     } else {
-                        const pAwards = awardsBank[player.name]?.[fc.award] || [];
+                        const pAwards = awardsBank[getPlayerKey(player.name)]?.[fc.award] || [];
                         if (pAwards.length < fc.minAwards) isValid = false;
                     }
                 }
@@ -1727,7 +1735,7 @@ export default function App() {
                   if (isValid && fc.awardSeason && selectedNormalized !== normalizeSeason(fc.awardSeason)) isValid = false;
                   if (isValid && fc.awardDecade && (asgYear < Number(fc.awardDecade) || asgYear >= Number(fc.awardDecade) + 10)) isValid = false;
                 } else if (fc.award) {
-                  const pAwards = awardsBank[player.name]?.[fc.award] || [];
+                  const pAwards = awardsBank[getPlayerKey(player.name)]?.[fc.award] || [];
                   const hasAward = pAwards.some(aw => {
                     let pass = true;
                     if (fc.awardDecade) {
