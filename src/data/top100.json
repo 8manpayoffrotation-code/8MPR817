@@ -1,0 +1,406 @@
+{
+  "description": "Top 100 all-time players used by the daily board generator to cap star-anchored slots. Ranked 1 (best) to 100. The generator limits how many daily slots may have a listed player as their top possible answer. Edit this list freely; names must match players.json exactly.",
+  "maxLegendsPerBoard": 2,
+  "players": [
+    {
+      "rank": 1,
+      "name": "Michael Jordan"
+    },
+    {
+      "rank": 2,
+      "name": "LeBron James"
+    },
+    {
+      "rank": 3,
+      "name": "Kareem Abdul-Jabbar"
+    },
+    {
+      "rank": 4,
+      "name": "Magic Johnson"
+    },
+    {
+      "rank": 5,
+      "name": "Bill Russell"
+    },
+    {
+      "rank": 6,
+      "name": "Shaquille O'Neal"
+    },
+    {
+      "rank": 7,
+      "name": "Tim Duncan"
+    },
+    {
+      "rank": 8,
+      "name": "Larry Bird"
+    },
+    {
+      "rank": 9,
+      "name": "Wilt Chamberlain"
+    },
+    {
+      "rank": 10,
+      "name": "Stephen Curry"
+    },
+    {
+      "rank": 11,
+      "name": "Kobe Bryant"
+    },
+    {
+      "rank": 12,
+      "name": "Hakeem Olajuwon"
+    },
+    {
+      "rank": 13,
+      "name": "Kevin Durant"
+    },
+    {
+      "rank": 14,
+      "name": "Oscar Robertson"
+    },
+    {
+      "rank": 15,
+      "name": "Jerry West"
+    },
+    {
+      "rank": 16,
+      "name": "Kevin Garnett"
+    },
+    {
+      "rank": 17,
+      "name": "Nikola Joki\u0107"
+    },
+    {
+      "rank": 18,
+      "name": "Dirk Nowitzki"
+    },
+    {
+      "rank": 19,
+      "name": "David Robinson"
+    },
+    {
+      "rank": 20,
+      "name": "Julius Erving"
+    },
+    {
+      "rank": 21,
+      "name": "Moses Malone"
+    },
+    {
+      "rank": 22,
+      "name": "Karl Malone"
+    },
+    {
+      "rank": 23,
+      "name": "Dwyane Wade"
+    },
+    {
+      "rank": 24,
+      "name": "Giannis Antetokounmpo"
+    },
+    {
+      "rank": 25,
+      "name": "Charles Barkley"
+    },
+    {
+      "rank": 26,
+      "name": "Elgin Baylor"
+    },
+    {
+      "rank": 27,
+      "name": "Isiah Thomas"
+    },
+    {
+      "rank": 28,
+      "name": "Scottie Pippen"
+    },
+    {
+      "rank": 29,
+      "name": "John Stockton"
+    },
+    {
+      "rank": 30,
+      "name": "Chris Paul"
+    },
+    {
+      "rank": 31,
+      "name": "John Havlicek"
+    },
+    {
+      "rank": 32,
+      "name": "Kawhi Leonard"
+    },
+    {
+      "rank": 33,
+      "name": "Jason Kidd"
+    },
+    {
+      "rank": 34,
+      "name": "James Harden"
+    },
+    {
+      "rank": 35,
+      "name": "Steve Nash"
+    },
+    {
+      "rank": 36,
+      "name": "Allen Iverson"
+    },
+    {
+      "rank": 37,
+      "name": "Bob Cousy"
+    },
+    {
+      "rank": 38,
+      "name": "Bob Pettit"
+    },
+    {
+      "rank": 39,
+      "name": "Clyde Drexler"
+    },
+    {
+      "rank": 40,
+      "name": "Patrick Ewing"
+    },
+    {
+      "rank": 41,
+      "name": "Rick Barry"
+    },
+    {
+      "rank": 42,
+      "name": "George Gervin"
+    },
+    {
+      "rank": 43,
+      "name": "Walt Frazier"
+    },
+    {
+      "rank": 44,
+      "name": "George Mikan"
+    },
+    {
+      "rank": 45,
+      "name": "Anthony Davis"
+    },
+    {
+      "rank": 46,
+      "name": "Kevin McHale"
+    },
+    {
+      "rank": 47,
+      "name": "Elvin Hayes"
+    },
+    {
+      "rank": 48,
+      "name": "Russell Westbrook"
+    },
+    {
+      "rank": 49,
+      "name": "Paul Pierce"
+    },
+    {
+      "rank": 50,
+      "name": "Dominique Wilkins"
+    },
+    {
+      "rank": 51,
+      "name": "Ray Allen"
+    },
+    {
+      "rank": 52,
+      "name": "Dwight Howard"
+    },
+    {
+      "rank": 53,
+      "name": "Gary Payton"
+    },
+    {
+      "rank": 54,
+      "name": "Reggie Miller"
+    },
+    {
+      "rank": 55,
+      "name": "Bill Walton"
+    },
+    {
+      "rank": 56,
+      "name": "Dolph Schayes"
+    },
+    {
+      "rank": 57,
+      "name": "Luka Don\u010di\u0107"
+    },
+    {
+      "rank": 58,
+      "name": "Willis Reed"
+    },
+    {
+      "rank": 59,
+      "name": "Tracy McGrady"
+    },
+    {
+      "rank": 60,
+      "name": "Carmelo Anthony"
+    },
+    {
+      "rank": 61,
+      "name": "Bob McAdoo"
+    },
+    {
+      "rank": 62,
+      "name": "Pau Gasol"
+    },
+    {
+      "rank": 63,
+      "name": "James Worthy"
+    },
+    {
+      "rank": 64,
+      "name": "Damian Lillard"
+    },
+    {
+      "rank": 65,
+      "name": "Vince Carter"
+    },
+    {
+      "rank": 66,
+      "name": "Joel Embiid"
+    },
+    {
+      "rank": 67,
+      "name": "Dennis Rodman"
+    },
+    {
+      "rank": 68,
+      "name": "Robert Parish"
+    },
+    {
+      "rank": 69,
+      "name": "Kyrie Irving"
+    },
+    {
+      "rank": 70,
+      "name": "Wes Unseld"
+    },
+    {
+      "rank": 71,
+      "name": "Chris Bosh"
+    },
+    {
+      "rank": 72,
+      "name": "Paul Arizin"
+    },
+    {
+      "rank": 73,
+      "name": "Hal Greer"
+    },
+    {
+      "rank": 74,
+      "name": "Dave Cowens"
+    },
+    {
+      "rank": 75,
+      "name": "Manu Gin\u00f3bili"
+    },
+    {
+      "rank": 76,
+      "name": "Alex English"
+    },
+    {
+      "rank": 77,
+      "name": "Pete Maravich"
+    },
+    {
+      "rank": 78,
+      "name": "Grant Hill"
+    },
+    {
+      "rank": 79,
+      "name": "Tiny Archibald"
+    },
+    {
+      "rank": 80,
+      "name": "Dikembe Mutombo"
+    },
+    {
+      "rank": 81,
+      "name": "Bob Lanier"
+    },
+    {
+      "rank": 82,
+      "name": "Jimmy Butler"
+    },
+    {
+      "rank": 83,
+      "name": "Adrian Dantley"
+    },
+    {
+      "rank": 84,
+      "name": "Sam Jones"
+    },
+    {
+      "rank": 85,
+      "name": "Tony Parker"
+    },
+    {
+      "rank": 86,
+      "name": "Alonzo Mourning"
+    },
+    {
+      "rank": 87,
+      "name": "Draymond Green"
+    },
+    {
+      "rank": 88,
+      "name": "Paul George"
+    },
+    {
+      "rank": 89,
+      "name": "Chris Webber"
+    },
+    {
+      "rank": 90,
+      "name": "Chauncey Billups"
+    },
+    {
+      "rank": 91,
+      "name": "Lenny Wilkens"
+    },
+    {
+      "rank": 92,
+      "name": "Jayson Tatum"
+    },
+    {
+      "rank": 93,
+      "name": "Bill Sharman"
+    },
+    {
+      "rank": 94,
+      "name": "Dave DeBusschere"
+    },
+    {
+      "rank": 95,
+      "name": "Joe Dumars"
+    },
+    {
+      "rank": 96,
+      "name": "Bernard King"
+    },
+    {
+      "rank": 97,
+      "name": "Klay Thompson"
+    },
+    {
+      "rank": 98,
+      "name": "Dave Bing"
+    },
+    {
+      "rank": 99,
+      "name": "Artis Gilmore"
+    },
+    {
+      "rank": 100,
+      "name": "Earl Monroe"
+    }
+  ]
+}

@@ -5,10 +5,20 @@ import allDefenseCsv from './data/all-defense.csv?raw';
 import { Presentation, Search, X, Loader2, Trophy, Dribbble, AlertCircle, User, Play, CheckCircle, XCircle, Copy, RotateCcw, Crown, Ticket, TrendingDown, Circle, FastForward, ListOrdered, ClipboardList, Lock, Tag, Plus, TableOfContents , Twitter, Mail , Send, ImagePlus } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import questionBank from './data/questions.json';
+import top100Data from './data/top100.json';
 import { supabase } from './lib/supabase';
 import { saveGame, fetchGames, isSupabaseConfigured } from './lib/db';
 import LZString from 'lz-string';
 import logoImg from "./logo.png";
+
+// --- Top-100 legend cap (nostalgia mechanic) ---
+// A daily board may include at most MAX_LEGENDS_PER_BOARD slots whose single best
+// (highest-scoring) answer is one of the all-time Top-100 players. This prevents
+// the board from being saturated with superstar-optimal questions.
+const LEGEND_NAMES: Set<string> = new Set(
+  (top100Data.players || []).map((p: { name: string }) => p.name)
+);
+const MAX_LEGENDS_PER_BOARD: number = top100Data.maxLegendsPerBoard ?? 3;
 
 const normalizeString = (str: string) => {
   if (!str) return "";
@@ -818,6 +828,30 @@ export default function App() {
     }
   };
 
+  // Teammate overlap: returns the exact set of season-years a star actually played
+  // on a given team. Used so "teammate of X" requires sharing a real season with X,
+  // not merely being on the same franchise within a year-window. Cached per star+team.
+  const teammateSeasonsCache = useRef<Map<string, Set<number>>>(new Map());
+  const getStarSeasonYears = (starName: string, team: string): Set<number> => {
+    const key = `${normalizeString(starName).toLowerCase()}|${team}`;
+    const cached = teammateSeasonsCache.current.get(key);
+    if (cached) return cached;
+    const years = new Set<number>();
+    const starLower = normalizeString(starName).toLowerCase();
+    const star = data.find(p => normalizeString(p.name).toLowerCase() === starLower);
+    if (star) {
+      star.seasons.forEach(s => {
+        const t = TEAM_ALIASES[s.team] || s.team;
+        if (t === team) {
+          const y = parseInt(s.season, 10);
+          if (!isNaN(y)) years.add(y);
+        }
+      });
+    }
+    teammateSeasonsCache.current.set(key, years);
+    return years;
+  };
+
   const getTopPicksForSlot = (slot: Slot) => {
     const fc = slot.filterCriteria;
     if (!fc) return [];
@@ -978,6 +1012,8 @@ export default function App() {
            const y = parseInt(season.season, 10);
            if (normalizedSeasonTeam !== fc.teammateWith.team || y < fc.teammateWith.minYear || y > fc.teammateWith.maxYear) return;
            if (normalizeString(player.name).toLowerCase() === normalizeString(fc.teammateWith.name).toLowerCase()) return;
+           // Require a REAL shared season: this season-year must be one the star also played on this team.
+           if (!getStarSeasonYears(fc.teammateWith.name, fc.teammateWith.team).has(y)) return;
         }
 
         eligiblePlayers.push({
@@ -1235,9 +1271,40 @@ export default function App() {
     };
   };
 
+  // --- Answer-level spacing (nostalgia variety mechanic) ---
+  // Beyond the 7-day question/team/teammate recency, we also discourage the same
+  // OPTIMAL answer (best-scoring player) from recurring within a short window, so
+  // the daily "aha" answer stays fresh (no "Dwight Howard 4 days running").
+  // This uses a SEPARATE, shorter rolling window than the question-recency ban.
+  const ANSWER_RECENCY_DAYS = 4; // fall back to 3 if this over-constrains buildability
+
+  // Apply the same slot transforms the board uses, then return each slot's optimal
+  // answer name. Mirrors the dailySlots mapping so the tracked answer matches what
+  // the player actually sees as the best answer.
+  const getBoardTopAnswers = (selectedBoard: any[]): string[] => {
+    const names: string[] = [];
+    selectedBoard.forEach((pick, i) => {
+      const finalFc = pick.filterCriteria ? { ...pick.filterCriteria } : undefined;
+      if (i === 3 && finalFc) finalFc.pos = 'F/C';
+      if (!isCustomDraft && i === 1 && finalFc && !finalFc.pos) finalFc.excludePos = 'PF';
+      const mockSlot = {
+        ...pick,
+        type: i === 3 ? 'F/C' : pick.type,
+        filterCriteria: finalFc,
+        id: ['s1','s2','s3','s4','s5','b1','b2','b3'][i],
+      };
+      const tp = getTopPicksForSlot(mockSlot as any);
+      if (tp.length > 0) names.push(tp[0].name);
+    });
+    return names;
+  };
+
   // Simulate past 14 days to track recently featured teams and teammates
   const recentTags = new Set<string>();
   const historyArray: string[][] = [];
+  // Parallel rolling window of recent OPTIMAL answers (shorter than recentTags)
+  const recentAnswers = new Set<string>();
+  const answerHistoryArray: string[][] = [];
   const today = new Date();
   const localToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
@@ -1245,7 +1312,7 @@ export default function App() {
 
   while (simDate < localToday) {
     const simStr = simDate.toLocaleDateString('en-CA');
-    const { dayTags } = getDailyBoard(simStr, recentTags, 0);
+    const { dayTags, selectedBoard: pastBoard } = getDailyBoard(simStr, recentTags, 0);
 
     dayTags.forEach(t => recentTags.add(t));
     historyArray.push(dayTags);
@@ -1256,6 +1323,15 @@ export default function App() {
     // Clear and rebuild the set from the remaining active days
     recentTags.clear();
     historyArray.flat().forEach(t => recentTags.add(t));
+
+    // Track that day's optimal answers over a shorter (ANSWER_RECENCY_DAYS) window
+    const pastAnswers = getBoardTopAnswers(pastBoard);
+    answerHistoryArray.push(pastAnswers);
+    if (answerHistoryArray.length > ANSWER_RECENCY_DAYS) {
+      answerHistoryArray.shift();
+    }
+    recentAnswers.clear();
+    answerHistoryArray.flat().forEach(a => recentAnswers.add(a));
 
     simDate.setDate(simDate.getDate() + 1);
   }
@@ -1273,7 +1349,9 @@ export default function App() {
     { id: 'b3', label: 'Bench 3' }
   ];
 
-  let bestBoardSlots: Slot[] | null = null;
+  let bestBoardSlots: Slot[] | null = null;   // ideal: valid, in-window, answer-clean
+  let inWindowFallback: Slot[] | null = null; // valid + in-window but repeats a recent answer
+  let anyValidFallback: Slot[] | null = null; // valid but out of window
   let attemptNonce = 0;
   let maxAttempts = 200;
 
@@ -1305,7 +1383,10 @@ export default function App() {
         }
       }
       if ((i === 4 || i === 7) && finalQuestion.includes('Center')) {
-        finalQuestion = finalQuestion.replace(/Center/g, 'Big (C/PF)');
+        // Normalize a standalone "Center" to "Big (C/PF)" for the center slots,
+        // but do NOT touch it if it is already part of a "Center/Big (C/PF)" or
+        // "(C/PF)" phrase (which would create doubled "Big (C/PF)/Big (C/PF)").
+        finalQuestion = finalQuestion.replace(/Center(?!\/Big|\s*\(C\/PF\))/g, 'Big (C/PF)');
       }
 
       const finalFc = pick.filterCriteria ? { ...pick.filterCriteria } : undefined;
@@ -1332,6 +1413,8 @@ export default function App() {
 
     let maxPotentialScore = 0;
     let isValidBoard = true;
+    let legendSlotCount = 0;
+    let repeatsRecentAnswer = false;
 
     for (const slot of dailySlots) {
       const topPicks = getTopPicksForSlot(slot);
@@ -1340,19 +1423,45 @@ export default function App() {
         break;
       }
       maxPotentialScore += topPicks[0].mpr8;
+      // Count slots whose optimal (best-scoring) answer is a Top-100 legend
+      if (LEGEND_NAMES.has(topPicks[0].name)) {
+        legendSlotCount++;
+      }
+      // Answer-spacing: flag if this slot's optimal answer was optimal in the last few days
+      if (recentAnswers.has(topPicks[0].name)) {
+        repeatsRecentAnswer = true;
+      }
     }
 
-    if (isValidBoard && maxPotentialScore >= 300 && maxPotentialScore <= 340) {
+    // Reject boards that exceed the legend cap (too many superstar-optimal slots)
+    if (isValidBoard && legendSlotCount > MAX_LEGENDS_PER_BOARD) {
+      isValidBoard = false;
+    }
+
+    const inWindow = isValidBoard && maxPotentialScore >= 250 && maxPotentialScore <= 285;
+
+    // Ideal board: valid, in-window, AND no optimal answer repeated from the last
+    // ANSWER_RECENCY_DAYS days. Take it immediately.
+    if (inWindow && !repeatsRecentAnswer) {
       bestBoardSlots = dailySlots;
-      break; // Found a valid board
+      break;
     }
 
-    if (!bestBoardSlots && isValidBoard) {
-       // Keep track of the first valid board just in case we hit maxAttempts
-       bestBoardSlots = dailySlots;
+    // Soft fallbacks (answer-spacing is a preference, not a hard gate, so we never
+    // get stuck): remember the best in-window board and any valid board, then keep
+    // trying for an answer-clean one until attempts run out.
+    if (inWindow && !inWindowFallback) {
+      inWindowFallback = dailySlots;
+    } else if (isValidBoard && !anyValidFallback) {
+      anyValidFallback = dailySlots;
     }
 
     attemptNonce++;
+  }
+
+  // Priority: answer-clean in-window (bestBoardSlots) > in-window w/ repeat > any valid.
+  if (!bestBoardSlots) {
+    bestBoardSlots = inWindowFallback || anyValidFallback;
   }
 
   if (bestBoardSlots) {
@@ -1455,8 +1564,8 @@ export default function App() {
   }, []);
 
   const getRank = (score: number) => {
-    if (score >= 300) return { title: 'Dynasty Architect', icon: <Crown className="w-16 h-16 text-yellow-400" />, id: 'dynasty' };
-    if (score >= 200) return { title: 'Playoff Contender', icon: <Trophy className="w-16 h-16 text-blue-400" />, id: 'playoff' };
+    if (score >= 250) return { title: 'Dynasty Architect', icon: <Crown className="w-16 h-16 text-yellow-400" />, id: 'dynasty' };
+    if (score >= 150) return { title: 'Playoff Contender', icon: <Trophy className="w-16 h-16 text-blue-400" />, id: 'playoff' };
     if (score >= 100) return { title: 'Play-In Team', icon: <Ticket className="w-16 h-16 text-white" />, id: 'playin' };
     return { title: 'Lottery Team', icon: <TrendingDown className="w-16 h-16 text-red-500" />, id: 'lottery' };
   };
@@ -1781,6 +1890,8 @@ export default function App() {
                    const y = parseInt(seasonData.season, 10);
                    if (normalizedDataTeam !== fc.teammateWith.team || y < fc.teammateWith.minYear || y > fc.teammateWith.maxYear) isValid = false;
                    if (normalizeString(player.name).toLowerCase() === normalizeString(fc.teammateWith.name).toLowerCase()) isValid = false;
+                   // Require a REAL shared season with the star, not just same franchise in the window.
+                   if (!getStarSeasonYears(fc.teammateWith.name, fc.teammateWith.team).has(y)) isValid = false;
                 }
 
                 if (isValid) {
@@ -2804,8 +2915,8 @@ export default function App() {
                   <h4 className="text-lg text-slate-300 font-sans font-black uppercase tracking-widest mb-4 border-b border-slate-700 pb-2">GM Grade</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {[
-                    { threshold: '≥ 300', title: 'Dynasty Architect', icon: <Crown className="w-6 h-6 text-yellow-400" />, id: 'dynasty' },
-                    { threshold: '≥ 200', title: 'Playoff Contender', icon: <Trophy className="w-6 h-6 text-blue-400" />, id: 'playoff' },
+                    { threshold: '≥ 250', title: 'Dynasty Architect', icon: <Crown className="w-6 h-6 text-yellow-400" />, id: 'dynasty' },
+                    { threshold: '≥ 150', title: 'Playoff Contender', icon: <Trophy className="w-6 h-6 text-blue-400" />, id: 'playoff' },
                     { threshold: '≥ 100', title: 'Play-In Team', icon: <Ticket className="w-6 h-6 text-white" />, id: 'playin' },
                     { threshold: '< 100', title: 'Lottery Team', icon: <TrendingDown className="w-6 h-6 text-red-500" />, id: 'lottery' },
                   ].map((tier) => (
