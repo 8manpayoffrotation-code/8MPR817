@@ -177,6 +177,34 @@ const TEAM_ALIASES: Record<string, string> = {
   'DLC': 'SAS', // Spurs / Chaparrals
 };
 
+// DISPLAY-ONLY team-code map for the end-of-game "Top 10 Answers" badges.
+// NOTE: this is purely cosmetic and is NOT used for any game logic / franchise
+// filtering (that still uses TEAM_ALIASES above). It KEEPS a handful of iconic,
+// genuinely-distinct legacy identities as nostalgic throwbacks and NORMALIZES the
+// rest so a single question's Top-10 list never shows mixed codes for one team
+// (e.g. a 2000s Charlotte list won't mix CHA/CHO).
+const DISPLAY_TEAM_NORMALIZE: Record<string, string> = {
+  // Charlotte: keep CHH (90s teal Hornets); collapse modern CHO into CHA
+  'CHO': 'CHA',
+  // Nets: keep NJN (New Jersey era); fold early/spelling variants into it or BKN
+  'BRK': 'BKN', 'NYA': 'NJN', 'NYN': 'NJN',
+  // Washington: fully unified (Bullets/Wizards share the same visual identity)
+  'WSB': 'WAS', 'BAL': 'WAS', 'CAP': 'WAS', 'CHZ': 'WAS',
+  // Kings lineage -> SAC (Kansas City Kings not kept as throwback)
+  'KCK': 'SAC', 'KCO': 'SAC', 'CIN': 'SAC', 'ROC': 'SAC',
+  // Clippers lineage -> LAC (San Diego not kept as throwback)
+  'SDC': 'LAC', 'SDR': 'LAC', 'BUF': 'LAC',
+  // Warriors precursors
+  'PHW': 'GSW', 'SFW': 'GSW',
+  // Other obscure pre-modern identities
+  'MNL': 'LAL', 'SYR': 'PHI', 'DLC': 'SAS', 'NOJ': 'UTA', 'NOK': 'NOP',
+};
+// Iconic identities intentionally shown AS-IS (throwback flavor): SEA, VAN, NJN, CHH, NOH.
+const displayTeam = (code: string): string => {
+  if (!code) return code;
+  return DISPLAY_TEAM_NORMALIZE[code] || code;
+};
+
 const parseAwardsCsv = (csvText: string, type: string) => {
   const lines = csvText.trim().split('\n');
   for (let i = 1; i < lines.length; i++) {
@@ -2753,7 +2781,7 @@ export default function App() {
                           <div className="flex flex-wrap items-center gap-2 mt-1">
                             <span className="font-sans text-sm font-bold text-slate-400">{formatSeasonDisplay(slot.player!.season)}</span>
                             <span className="font-sans text-[10px] font-bold text-white bg-slate-700 px-2 py-0.5 rounded text-center">
-                              {slot.player!.team}
+                              {displayTeam(slot.player!.team)}
                             </span>
                           </div>
                           {slotPenalties[index] < 0 && (
@@ -2950,7 +2978,7 @@ export default function App() {
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3">
                         <div className="max-w-full sm:max-w-[50%] overflow-hidden">
                           <div className="font-bold text-slate-200 truncate">{slot.player?.name || 'Empty'}</div>
-                          {slot.player && <div className="text-xs text-slate-400 truncate">{formatSeasonDisplay(slot.player.season)} &bull; {slot.player.pos} &bull; {slot.player.team}</div>}
+                          {slot.player && <div className="text-xs text-slate-400 truncate">{formatSeasonDisplay(slot.player.season)} &bull; {slot.player.pos} &bull; {displayTeam(slot.player.team)}</div>}
                         </div>
                         <div className="flex flex-row items-center justify-around sm:justify-end w-full sm:w-auto gap-4 sm:gap-6 text-center sm:text-right shrink-0 mt-2 sm:mt-0 pt-2 sm:pt-0 border-t border-slate-700/50 sm:border-0">
                           {slot.player && (
@@ -3009,7 +3037,7 @@ export default function App() {
                                         <div className="flex items-center justify-end gap-2 order-2 text-slate-400">
                                           <span className="w-8 sm:w-10 text-right font-sans">'{pick.season.slice(2)}</span>
                                           <div className="w-10 sm:w-12 flex justify-center">
-                                            <span className="bg-slate-800 px-1.5 py-0.5 rounded text-[10px] text-slate-400 font-bold font-sans">{pick.team}</span>
+                                            <span className="bg-slate-800 px-1.5 py-0.5 rounded text-[10px] text-slate-400 font-bold font-sans">{displayTeam(pick.team)}</span>
                                           </div>
                                         </div>
                                       </div>
