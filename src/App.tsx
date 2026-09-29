@@ -1286,6 +1286,9 @@ export default function App() {
     selectedBoard.forEach((pick, i) => {
       const finalFc = pick.filterCriteria ? { ...pick.filterCriteria } : undefined;
       if (i === 3 && finalFc) finalFc.pos = 'F/C';
+      // Bench 2 is a forwards-only slot ("Forward (SF or PF)"); force pos 'F' so the
+      // filter matches the wording and pure centers (e.g. Dikembe) are not accepted.
+      if (i === 6 && finalFc) finalFc.pos = 'F';
       if (!isCustomDraft && i === 1 && finalFc && !finalFc.pos) finalFc.excludePos = 'PF';
       const mockSlot = {
         ...pick,
@@ -1393,6 +1396,12 @@ export default function App() {
       
       if (i === 3 && finalFc) {
         finalFc.pos = 'F/C';
+      }
+
+      // Bench 2 (slot 6) shows "Forward (SF or PF)" -> force forwards-only filter so it
+      // matches the wording; prevents pure centers (e.g. Dikembe Mutombo) being accepted.
+      if (i === 6 && finalFc) {
+        finalFc.pos = 'F';
       }
 
       if (!isCustomDraft && i === 1 && finalFc && !finalFc.pos) {
