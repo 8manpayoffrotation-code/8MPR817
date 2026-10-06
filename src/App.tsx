@@ -880,6 +880,15 @@ export default function App() {
     return years;
   };
 
+  // Is a named player a PURE CENTER (eligible only at C, never SF/PF)? Used to strip
+  // now-pointless center exclusions from the forwards-only Bench 2 display text.
+  const isPureCenterName = (name: string): boolean => {
+    const lower = normalizeString(name).toLowerCase();
+    const p = data.find(pl => normalizeString(pl.name).toLowerCase().includes(lower));
+    if (!p || !p.eligiblePositions || p.eligiblePositions.length === 0) return false;
+    return p.eligiblePositions.every(pos => pos === 'C');
+  };
+
   const getTopPicksForSlot = (slot: Slot) => {
     const fc = slot.filterCriteria;
     if (!fc) return [];
@@ -1195,6 +1204,13 @@ export default function App() {
     const dayThemes = new Map<string, number>();
     const dayDecades = new Map<string, number>();
 
+    // "Achievement" themes skew toward current stars (the best scorer/All-Star/top
+    // pick usually IS a star). Two of these back-to-back makes a board feel star-heavy.
+    // We track the PREVIOUS slot's theme to discourage achievement-after-achievement
+    // on the strict pass, giving the board a "blitz / deep-cut pause" rhythm.
+    const ACHIEVEMENT_THEMES = new Set(['stat', 'top_pick', 'steal', 'conf_award']);
+    let prevSlotWasAchievement = false;
+
     const shuffle = <T,>(arr: T[]): T[] => {
       const copy = [...arr];
       for (let i = copy.length - 1; i > 0; i--) {
@@ -1237,6 +1253,11 @@ export default function App() {
         const theme = item.theme || 'generic';
         const currentThemeCount = dayThemes.get(theme) || 0;
         if (strictDiversity && currentThemeCount >= 1) continue; // Same-day theme diversity
+
+        // Achievement-adjacency spacing (soft): on the strict pass, don't place an
+        // achievement-themed question directly after another one. Falls through on the
+        // relaxed pass so buildability is never blocked.
+        if (strictDiversity && prevSlotWasAchievement && ACHIEVEMENT_THEMES.has(theme)) continue;
 
         usedQuestions.add(item.id);
         if (normalizedTeam) dayTeams.add(normalizedTeam);
@@ -1288,6 +1309,8 @@ export default function App() {
         }
       }
       selectedBoard.push(picked);
+      // Remember whether this slot was achievement-themed, for the next slot's spacing check.
+      prevSlotWasAchievement = ACHIEVEMENT_THEMES.has(picked.theme || 'generic');
     }
 
     return {
@@ -1411,6 +1434,25 @@ export default function App() {
         // Fallback for any standard "Forward" prompt without parentheticals
         if (!finalQuestion.includes('Forward (SF or PF)')) {
           finalQuestion = finalQuestion.replace(/Forward/g, 'Forward (SF or PF)');
+        }
+
+        // Bench 2 is forwards-only, so any "not named <pure center>" exclusion is now
+        // pointless (that center can't be answered here anyway) and reads as nonsense
+        // (e.g. "Forward ... not named Nikola Jokic"). Strip pure-center names from the
+        // visible exclusion clause; drop the clause entirely if none remain.
+        const excl = pick.filterCriteria?.exclude as string[] | undefined;
+        if (excl && excl.length > 0) {
+          const keptNames = excl.filter(n => !isPureCenterName(n));
+          const removedAny = keptNames.length !== excl.length;
+          if (removedAny) {
+            // rebuild the "not named ..." clause from the kept names (or remove it)
+            let clause = '';
+            if (keptNames.length === 1) clause = ` not named ${keptNames[0]}`;
+            else if (keptNames.length === 2) clause = ` not named ${keptNames[0]} or ${keptNames[1]}`;
+            else if (keptNames.length >= 3) clause = ` not named ${keptNames.slice(0, -1).join(', ')}, or ${keptNames[keptNames.length - 1]}`;
+            finalQuestion = finalQuestion.replace(/\s*not named .*?(?=\.?$)/i, '').replace(/\.?$/, '');
+            finalQuestion = finalQuestion + clause + '.';
+          }
         }
       }
       if ((i === 4 || i === 7) && finalQuestion.includes('Center')) {
