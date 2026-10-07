@@ -507,9 +507,13 @@ const getEligiblePositions = (playerSeasons: SeasonData[]): string[] => {
     }
   });
   
-  // FIX: If a player has only 1 season total (like incoming rookies), 
-  // allow their position(s) immediately without requiring 2 seasons.
-  if (playerSeasons.length === 1) {
+  // Young / short-career players (<= 3 seasons) are allowed ANY position they have
+  // played, because the 2-season requirement wrongly rejected position-switching
+  // rookies/sophomores (e.g. Reed Sheppard SG->PG, Amen Thompson PG/SF) — they were
+  // eligible for nothing or miscategorized. For established players (4+ seasons) we
+  // keep the >=2-season requirement so a one-off fluke position (e.g. a long-career
+  // center logging a single game at PF) doesn't pollute the wrong position's pool.
+  if (playerSeasons.length <= 3) {
     return Object.keys(counts);
   }
 
