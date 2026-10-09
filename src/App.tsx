@@ -696,6 +696,11 @@ const getCloseHint = (
   // miss reasons are subtle (made the team or not). Skip hinting so we never show a
   // misleading "team/era" hint when the real miss was the award. Falls back to trash-talk.
   if (fc.award) return null;
+  // Teammate questions use a year RANGE (not a decade) and their miss is usually a
+  // timing/overlap issue ("wasn't on the team WHILE the star was"), which doesn't map
+  // cleanly to our team/decade/pos buckets — a hint here would mislead (e.g. Embiid on
+  // an Iverson-teammate Q is a timing miss, not a "team" miss). Skip -> trash-talk.
+  if (fc.teammateWith) return null;
 
   const posKey = fc.pos && POS_GROUP_SET[fc.pos] ? fc.pos : null;
   const wantPos = posKey ? POS_GROUP_SET[posKey] : null;
@@ -754,7 +759,7 @@ const getCloseHint = (
   const seasonPos = best.season.pos || '';
 
   if (best.probe.pos) {
-    return `Close — ${name} played ${seasonPos} for ${teamLabel} in the ${decLabel}, not ${posLabel}.`;
+    return `Close — ${name} played ${friendlyPosWord(seasonPos)} for ${teamLabel} in the ${decLabel}, not ${posLabel}.`;
   }
   if (best.probe.team) {
     // "the Milwaukee Bucks" reads better than "Milwaukee Bucks"; conf labels already include "the".
@@ -777,6 +782,23 @@ const getCloseHint = (
     return `Close — ${name}'s best was ${detail} this question needs.`;
   }
   return null;
+};
+
+// Convert a raw season position (e.g. "PF", "SG", "SF-SG") to a friendly word for hints.
+// Maps to the broad family the player actually played so the hint reads naturally
+// ("played forward, not Guard") instead of showing a raw code ("played PF").
+const friendlyPosWord = (rawPos: string): string => {
+  const parts = (rawPos || '').split('-').map(p => p.trim());
+  const has = (set: string[]) => parts.some(p => set.includes(p));
+  const isGuard = has(['PG', 'SG']);
+  const isForward = has(['SF', 'PF']);
+  const isCenter = has(['C']);
+  if (isForward && isCenter && !isGuard) return 'forward/center';
+  if (isGuard && isForward) return 'guard/forward';
+  if (isCenter) return 'center';
+  if (isForward) return 'forward';
+  if (isGuard) return 'guard';
+  return rawPos; // fallback: show whatever we had
 };
 
 // Best per-game mark for a stat across a player's career (used in stat hints).
@@ -1608,9 +1630,12 @@ export default function App() {
         if (finalQuestion.includes('Big (PF/C) or Forward (PF/SF)')) {
           finalQuestion = finalQuestion.replace(/Big \(PF\/C\) or Forward \(PF\/SF\)/g, 'Forward (SF/PF) or Center');
         } 
-        // Fallback for standard "Forward" questions
+        // Fallback for standard "Forward" questions. Match an OPTIONAL existing
+        // parenthetical (e.g. teammate Qs are stored as "Forward (SF or PF)") so we
+        // replace the WHOLE phrase instead of leaving a dangling "(SF or PF)" behind
+        // (which produced "Forward (SF/PF) or Center (SF or PF)").
         else if (finalQuestion.includes('Forward') && !finalQuestion.includes('Forward (SF/PF) or Center')) {
-          finalQuestion = finalQuestion.replace(/Forward/g, 'Forward (SF/PF) or Center');
+          finalQuestion = finalQuestion.replace(/Forward(\s*\((?:SF|PF)[^)]*\))?/g, 'Forward (SF/PF) or Center');
         }
       }
       if (i === 6) {
@@ -1619,9 +1644,10 @@ export default function App() {
           .replace(/Big \(PF\/C\) or Big Wing \(PF\/SF\)/g, 'Forward (SF or PF)')
           .replace(/Big \(PF\/C\) or Forward \(PF\/SF\)/g, 'Forward (SF or PF)');
 
-        // Fallback for any standard "Forward" prompt without parentheticals
+        // Fallback for any standard "Forward" prompt. Consume an OPTIONAL existing
+        // parenthetical so "Forward (SF or PF)" doesn't become doubled.
         if (!finalQuestion.includes('Forward (SF or PF)')) {
-          finalQuestion = finalQuestion.replace(/Forward/g, 'Forward (SF or PF)');
+          finalQuestion = finalQuestion.replace(/Forward(\s*\((?:SF|PF)[^)]*\))?/g, 'Forward (SF or PF)');
         }
 
         // Bench 2 is forwards-only, so any "not named <pure center>" exclusion is now
