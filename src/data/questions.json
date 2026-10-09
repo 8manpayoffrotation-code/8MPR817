@@ -35,56 +35,6 @@
     "id": "q_g_901"
   },
   {
-    "question": "Name a Wing (SF or SG) from the Los Angeles Lakers who played in the 2000s not named Kobe Bryant or Lamar Odom.",
-    "filterCriteria": {
-      "pos": "W",
-      "team": "LAL",
-      "playedInDecade": 2000,
-      "exclude": [
-        "Kobe Bryant",
-        "Lamar Odom"
-      ]
-    },
-    "type": "W",
-    "decadeLabel": "2000s",
-    "difficulty": "hoophead",
-    "theme": "franchise",
-    "id": "q_w_900"
-  },
-  {
-    "question": "Name a Big (C/PF) from the New York Knicks who played in the 1990s not named Patrick Ewing.",
-    "filterCriteria": {
-      "pos": "C",
-      "team": "NYK",
-      "playedInDecade": 1990,
-      "exclude": [
-        "Patrick Ewing"
-      ]
-    },
-    "type": "C",
-    "decadeLabel": "1990s",
-    "difficulty": "medium",
-    "theme": "franchise",
-    "id": "q_c_900"
-  },
-  {
-    "question": "Name a Wing (SF or SG) from the Phoenix Suns who played in the 2000s not named Shawn Marion or Joe Johnson.",
-    "filterCriteria": {
-      "pos": "W",
-      "team": "PHO",
-      "playedInDecade": 2000,
-      "exclude": [
-        "Shawn Marion",
-        "Joe Johnson"
-      ]
-    },
-    "type": "W",
-    "decadeLabel": "2000s",
-    "difficulty": "hoophead",
-    "theme": "franchise",
-    "id": "q_w_901"
-  },
-  {
     "question": "Name a Guard from the Utah Jazz who played in the 1990s not named John Stockton or Jeff Hornacek.",
     "filterCriteria": {
       "pos": "G",
@@ -138,40 +88,6 @@
     "id": "q_g_903"
   },
   {
-    "question": "Name a Big (C/PF) from the San Antonio Spurs who played in the 2000s not named Tim Duncan or David Robinson.",
-    "filterCriteria": {
-      "pos": "C",
-      "team": "SAS",
-      "playedInDecade": 2000,
-      "exclude": [
-        "Tim Duncan",
-        "David Robinson"
-      ]
-    },
-    "type": "C",
-    "decadeLabel": "2000s",
-    "difficulty": "medium",
-    "theme": "franchise",
-    "id": "q_c_901"
-  },
-  {
-    "question": "Name a Wing (SF or SG) from the Miami Heat who played in the 2010s not named Dwyane Wade or LeBron James.",
-    "filterCriteria": {
-      "pos": "W",
-      "team": "MIA",
-      "playedInDecade": 2010,
-      "exclude": [
-        "Dwyane Wade",
-        "LeBron James"
-      ]
-    },
-    "type": "W",
-    "decadeLabel": "2010s",
-    "difficulty": "medium",
-    "theme": "franchise",
-    "id": "q_w_902"
-  },
-  {
     "question": "Name a Forward (SF or PF) from the Dallas Mavericks who played in the 2010s not named Dirk Nowitzki.",
     "filterCriteria": {
       "pos": "F",
@@ -186,22 +102,6 @@
     "difficulty": "medium",
     "theme": "franchise",
     "id": "q_f_901"
-  },
-  {
-    "question": "Name a Guard from the Cleveland Cavaliers who played in the 2010s not named Kyrie Irving.",
-    "filterCriteria": {
-      "pos": "G",
-      "team": "CLE",
-      "playedInDecade": 2010,
-      "exclude": [
-        "Kyrie Irving"
-      ]
-    },
-    "type": "G",
-    "decadeLabel": "2010s",
-    "difficulty": "medium",
-    "theme": "franchise",
-    "id": "q_g_904"
   },
   {
     "question": "Name a Guard from the Portland Trail Blazers who played in the 2010s not named Damian Lillard or CJ McCollum.",
@@ -219,39 +119,6 @@
     "difficulty": "hoophead",
     "theme": "franchise",
     "id": "q_g_905"
-  },
-  {
-    "question": "Name a Big (C/PF) from the Houston Rockets who played in the 1990s not named Hakeem Olajuwon.",
-    "filterCriteria": {
-      "pos": "C",
-      "team": "HOU",
-      "playedInDecade": 1990,
-      "exclude": [
-        "Hakeem Olajuwon"
-      ]
-    },
-    "type": "C",
-    "decadeLabel": "1990s",
-    "difficulty": "medium",
-    "theme": "franchise",
-    "id": "q_c_902"
-  },
-  {
-    "question": "Name a Wing (SF or SG) from the Toronto Raptors who played in the 2010s not named DeMar DeRozan or Kawhi Leonard.",
-    "filterCriteria": {
-      "pos": "W",
-      "team": "TOR",
-      "playedInDecade": 2010,
-      "exclude": [
-        "DeMar DeRozan",
-        "Kawhi Leonard"
-      ]
-    },
-    "type": "W",
-    "decadeLabel": "2010s",
-    "difficulty": "hoophead",
-    "theme": "franchise",
-    "id": "q_w_903"
   },
   {
     "question": "Name a Guard who averaged 2+ Steals in a single season during the 1990s not named John Stockton, Michael Jordan, or Tim Hardaway.",
@@ -437,22 +304,6 @@
     "id": "q_g_911"
   },
   {
-    "question": "Name a Big (C/PF) from the Orlando Magic who played in the 2000s not named Dwight Howard.",
-    "filterCriteria": {
-      "pos": "C",
-      "team": "ORL",
-      "playedInDecade": 2000,
-      "exclude": [
-        "Dwight Howard"
-      ]
-    },
-    "type": "C",
-    "decadeLabel": "2000s",
-    "difficulty": "warmup",
-    "theme": "franchise",
-    "id": "q_c_906"
-  },
-  {
     "question": "Name a Wing (SF or SG) from the Indiana Pacers who played in the 1990s not named Reggie Miller.",
     "filterCriteria": {
       "pos": "W",
@@ -500,22 +351,6 @@
     "difficulty": "warmup",
     "theme": "franchise",
     "id": "q_f_903"
-  },
-  {
-    "question": "Name a Big (C/PF) from the Denver Nuggets who played in the 2010s not named Nikola Jokić.",
-    "filterCriteria": {
-      "pos": "C",
-      "team": "DEN",
-      "playedInDecade": 2010,
-      "exclude": [
-        "Nikola Jokić"
-      ]
-    },
-    "type": "C",
-    "decadeLabel": "2010s",
-    "difficulty": "warmup",
-    "theme": "franchise",
-    "id": "q_c_907"
   },
   {
     "question": "Name a Wing (SF or SG) from the Atlanta Hawks who played in the 2000s not named Joe Johnson or Josh Smith.",
@@ -657,23 +492,6 @@
     "id": "q_g_917"
   },
   {
-    "question": "Name a Big (C/PF) from the Philadelphia 76ers who played in the 1980s not named Moses Malone or Charles Barkley.",
-    "filterCriteria": {
-      "pos": "C",
-      "team": "PHI",
-      "playedInDecade": 1980,
-      "exclude": [
-        "Moses Malone",
-        "Charles Barkley"
-      ]
-    },
-    "type": "C",
-    "decadeLabel": "1980s",
-    "difficulty": "hoophead",
-    "theme": "franchise",
-    "id": "q_c_909"
-  },
-  {
     "question": "Name a Forward (SF or PF) from the Detroit Pistons who played in the 1980s not named Dennis Rodman.",
     "filterCriteria": {
       "pos": "F",
@@ -705,41 +523,6 @@
     "difficulty": "medium",
     "theme": "franchise",
     "id": "q_g_918"
-  },
-  {
-    "question": "Name a Wing (SF or SG) from the Phoenix Suns who played in the 2020s not named Devin Booker, Kevin Durant, or Mikal Bridges.",
-    "filterCriteria": {
-      "pos": "W",
-      "team": "PHO",
-      "playedInDecade": 2020,
-      "exclude": [
-        "Devin Booker",
-        "Kevin Durant",
-        "Mikal Bridges"
-      ]
-    },
-    "type": "W",
-    "decadeLabel": "2020s",
-    "difficulty": "medium",
-    "theme": "franchise",
-    "id": "q_w_907"
-  },
-  {
-    "question": "Name a Big (C/PF) from the Denver Nuggets who played in the 2020s not named Nikola Jokic.",
-    "filterCriteria": {
-      "pos": "C",
-      "team": "DEN",
-      "playedInDecade": 2020,
-      "exclude": [
-        "Nikola Jokic",
-        "Nikola Jokić"
-      ]
-    },
-    "type": "C",
-    "decadeLabel": "2020s",
-    "difficulty": "medium",
-    "theme": "franchise",
-    "id": "q_c_910"
   },
   {
     "question": "Name a Guard from the Memphis Grizzlies who played in the 2020s not named Ja Morant.",
@@ -776,22 +559,6 @@
     "id": "q_w_908"
   },
   {
-    "question": "Name a Guard from the Seattle SuperSonics who played in the 1990s not named Gary Payton.",
-    "filterCriteria": {
-      "pos": "G",
-      "team": "SEA",
-      "playedInDecade": 1990,
-      "exclude": [
-        "Gary Payton"
-      ]
-    },
-    "type": "G",
-    "decadeLabel": "1990s",
-    "difficulty": "medium",
-    "theme": "franchise",
-    "id": "q_g_920"
-  },
-  {
     "question": "Name a Forward (SF or PF) from the Oklahoma City Thunder who played in the 2020s.",
     "filterCriteria": {
       "pos": "F",
@@ -803,22 +570,6 @@
     "difficulty": "warmup",
     "theme": "franchise",
     "id": "q_f_906"
-  },
-  {
-    "question": "Name a Guard from the Los Angeles Clippers who played in the 2010s not named Chris Paul.",
-    "filterCriteria": {
-      "pos": "G",
-      "team": "LAC",
-      "playedInDecade": 2010,
-      "exclude": [
-        "Chris Paul"
-      ]
-    },
-    "type": "G",
-    "decadeLabel": "2010s",
-    "difficulty": "medium",
-    "theme": "franchise",
-    "id": "q_g_921"
   },
   {
     "question": "Name a Forward (SF or PF) from the Minnesota Timberwolves who played in the 2000s not named Kevin Garnett.",
@@ -837,52 +588,6 @@
     "id": "q_f_907"
   },
   {
-    "question": "Name a Guard from the New Jersey Nets who played in the 2000s not named Jason Kidd or Vince Carter.",
-    "filterCriteria": {
-      "pos": "G",
-      "team": "BKN",
-      "playedInDecade": 2000,
-      "exclude": [
-        "Jason Kidd",
-        "Vince Carter"
-      ]
-    },
-    "type": "G",
-    "decadeLabel": "2000s",
-    "difficulty": "medium",
-    "theme": "franchise",
-    "id": "q_g_922"
-  },
-  {
-    "question": "Name a Big (C/PF) from the New Orleans Pelicans / Hornets who played in the 2000s alongside Chris Paul.",
-    "filterCriteria": {
-      "pos": "C",
-      "team": "NOP",
-      "playedInDecade": 2000
-    },
-    "type": "C",
-    "decadeLabel": "2000s",
-    "difficulty": "medium",
-    "theme": "franchise",
-    "id": "q_c_911"
-  },
-  {
-    "question": "Name a Guard from the Atlanta Hawks who played in the 1980s not named Dominique Wilkins.",
-    "filterCriteria": {
-      "pos": "G",
-      "team": "ATL",
-      "playedInDecade": 1980,
-      "exclude": [
-        "Dominique Wilkins"
-      ]
-    },
-    "type": "G",
-    "decadeLabel": "1980s",
-    "difficulty": "medium",
-    "theme": "franchise",
-    "id": "q_g_923"
-  },
-  {
     "question": "Name a Wing (SF or SG) from the Seattle SuperSonics who played in the 1980s.",
     "filterCriteria": {
       "pos": "W",
@@ -894,19 +599,6 @@
     "difficulty": "warmup",
     "theme": "franchise",
     "id": "q_w_909"
-  },
-  {
-    "question": "Name a Big (C/PF) from the Portland Trail Blazers who played in the 1980s.",
-    "filterCriteria": {
-      "pos": "C",
-      "team": "POR",
-      "playedInDecade": 1980
-    },
-    "type": "C",
-    "decadeLabel": "1980s",
-    "difficulty": "warmup",
-    "theme": "franchise",
-    "id": "q_c_912"
   },
   {
     "question": "Name a Guard from the Denver Nuggets who played in the 1980s not named Fat Lever.",
@@ -954,22 +646,6 @@
     "difficulty": "medium",
     "theme": "franchise",
     "id": "q_f_908"
-  },
-  {
-    "question": "Name a Wing (SF or SG) from the Cleveland Cavaliers who played in the 2020s not named Donovan Mitchell.",
-    "filterCriteria": {
-      "pos": "W",
-      "team": "CLE",
-      "playedInDecade": 2020,
-      "exclude": [
-        "Donovan Mitchell"
-      ]
-    },
-    "type": "W",
-    "decadeLabel": "2020s",
-    "difficulty": "medium",
-    "theme": "franchise",
-    "id": "q_w_911"
   },
   {
     "question": "Name a Guard from the Sacramento Kings who played in the 2020s not named De'Aaron Fox.",
@@ -1053,23 +729,6 @@
     "difficulty": "hoophead",
     "theme": "franchise",
     "id": "q_w_914"
-  },
-  {
-    "question": "Name a Wing (SF or SG) from the Boston Celtics who played in the 2000s not named Paul Pierce or Ray Allen.",
-    "filterCriteria": {
-      "pos": "W",
-      "team": "BOS",
-      "playedInDecade": 2000,
-      "exclude": [
-        "Paul Pierce",
-        "Ray Allen"
-      ]
-    },
-    "type": "W",
-    "decadeLabel": "2000s",
-    "difficulty": "medium",
-    "theme": "franchise",
-    "id": "q_w_915"
   },
   {
     "question": "Name a Wing (SF or SG) from the Utah Jazz who played in the 2010s not named Donovan Mitchell or Gordon Hayward.",
@@ -1171,57 +830,6 @@
     "id": "q_f_913"
   },
   {
-    "question": "Name a Big (C/PF) from the Detroit Pistons who played in the 2000s not named Ben Wallace or Rasheed Wallace.",
-    "filterCriteria": {
-      "pos": "C",
-      "team": "DET",
-      "playedInDecade": 2000,
-      "exclude": [
-        "Ben Wallace",
-        "Rasheed Wallace"
-      ]
-    },
-    "type": "C",
-    "decadeLabel": "2000s",
-    "difficulty": "hoophead",
-    "theme": "franchise",
-    "id": "q_c_914"
-  },
-  {
-    "question": "Name a Big (C/PF) from the Los Angeles Lakers who played in the 2010s not named Pau Gasol, Dwight Howard, or Lamar Odom.",
-    "filterCriteria": {
-      "pos": "C",
-      "team": "LAL",
-      "playedInDecade": 2010,
-      "exclude": [
-        "Pau Gasol",
-        "Dwight Howard",
-        "Lamar Odom"
-      ]
-    },
-    "type": "C",
-    "decadeLabel": "2010s",
-    "difficulty": "medium",
-    "theme": "franchise",
-    "id": "q_c_915"
-  },
-  {
-    "question": "Name a Big (C/PF) from the Indiana Pacers who played in the 2000s not named Jermaine O'Neal.",
-    "filterCriteria": {
-      "pos": "C",
-      "team": "IND",
-      "playedInDecade": 2000,
-      "exclude": [
-        "Jermaine O'Neal"
-      ]
-    },
-    "type": "C",
-    "decadeLabel": "2000s",
-    "difficulty": "medium",
-    "theme": "franchise",
-    "id": "q_c_916"
-  },
-  {
     "question": "Name a Big (C/PF) from the Utah Jazz who played in the 1990s not named Karl Malone.",
     "filterCriteria": {
       "pos": "C",
@@ -1254,7 +862,7 @@
     "id": "q_c_918"
   },
   {
-    "question": "Name a Guard who was teammates with Kevin Garnett on the Minnesota Timberwolves between 1995 and 2007 not named Sam Cassell.",
+    "question": "Name a Guard who was teammates with Kevin Garnett on the Minnesota Timberwolves between 1995 and 2007 not named Sam Cassell or Stephon Marbury.",
     "filterCriteria": {
       "pos": "G",
       "teammateWith": {
@@ -1264,7 +872,8 @@
         "maxYear": 2007
       },
       "exclude": [
-        "Sam Cassell"
+        "Sam Cassell",
+        "Stephon Marbury"
       ]
     },
     "type": "G",
@@ -4998,22 +4607,6 @@
     }
   },
   {
-    "id": "q_w_301",
-    "type": "W",
-    "difficulty": "hoophead",
-    "theme": "franchise",
-    "decadeLabel": "1980s",
-    "question": "Name a Wing (SF or SG) from the Boston Celtics who played in the 1980s not named Larry Bird.",
-    "filterCriteria": {
-      "pos": "W",
-      "team": "BOS",
-      "playedInDecade": 1980,
-      "exclude": [
-        "Larry Bird"
-      ]
-    }
-  },
-  {
     "id": "q_w_302",
     "type": "W",
     "difficulty": "medium",
@@ -5560,25 +5153,6 @@
     }
   },
   {
-    "id": "q_w_507",
-    "type": "W",
-    "difficulty": "warmup",
-    "theme": "stat",
-    "decadeLabel": "1990s",
-    "question": "Name a Wing (SF or SG) who averaged 4+ Assists in a single season during the 1990s not named Grant Hill, Larry Bird, Michael Jordan, or Scottie Pippen.",
-    "filterCriteria": {
-      "pos": "W",
-      "minAst": 4,
-      "playedInDecade": 1990,
-      "exclude": [
-        "Grant Hill",
-        "Larry Bird",
-        "Michael Jordan",
-        "Scottie Pippen"
-      ]
-    }
-  },
-  {
     "id": "q_w_508",
     "type": "W",
     "difficulty": "medium",
@@ -5593,43 +5167,6 @@
         "minYear": 1986,
         "maxYear": 1989
       }
-    }
-  },
-  {
-    "id": "q_f_525",
-    "type": "F",
-    "difficulty": "hoophead",
-    "theme": "conf_award",
-    "decadeLabel": "2020s",
-    "question": "Name an Eastern Conference Big (PF/C) or Forward (PF/SF) who made the All-Star team in the 2020s not named Giannis Antetokounmpo, Jayson Tatum, or Joel Embiid.",
-    "filterCriteria": {
-      "pos": "F/C",
-      "conf": "EAST",
-      "award": "All-Star",
-      "awardDecade": 2020,
-      "exclude": [
-        "Giannis Antetokounmpo",
-        "Jayson Tatum",
-        "Joel Embiid"
-      ]
-    }
-  },
-  {
-    "id": "q_c_505",
-    "type": "C",
-    "difficulty": "hoophead",
-    "theme": "franchise",
-    "decadeLabel": "1980s",
-    "question": "Name a Big (C/PF) from the Houston Rockets who played in the 1980s not named Hakeem Olajuwon, Moses Malone, or Ralph Sampson.",
-    "filterCriteria": {
-      "pos": "C",
-      "team": "HOU",
-      "playedInDecade": 1980,
-      "exclude": [
-        "Hakeem Olajuwon",
-        "Moses Malone",
-        "Ralph Sampson"
-      ]
     }
   },
   {
@@ -7430,22 +6967,6 @@
     }
   },
   {
-    "id": "q_g_534",
-    "type": "G",
-    "difficulty": "warmup",
-    "theme": "franchise",
-    "decadeLabel": "1980s",
-    "question": "Name a Guard from the Detroit Pistons who played in the 1980s not named Isiah Thomas.",
-    "filterCriteria": {
-      "pos": "G",
-      "team": "DET",
-      "playedInDecade": 1980,
-      "exclude": [
-        "Isiah Thomas"
-      ]
-    }
-  },
-  {
     "id": "q_f_554",
     "type": "F",
     "difficulty": "warmup",
@@ -8101,23 +7622,6 @@
       "exclude": [
         "Giannis Antetokounmpo",
         "Khris Middleton"
-      ]
-    }
-  },
-  {
-    "id": "q_c_556",
-    "type": "C",
-    "difficulty": "warmup",
-    "theme": "franchise",
-    "decadeLabel": "2010s",
-    "question": "Name a Big (C/PF) from the Milwaukee Bucks who played in the 2010s not named Giannis Antetokounmpo or Hassan Whiteside.",
-    "filterCriteria": {
-      "pos": "C",
-      "team": "MIL",
-      "playedInDecade": 2010,
-      "exclude": [
-        "Giannis Antetokounmpo",
-        "Hassan Whiteside"
       ]
     }
   },
@@ -8998,22 +8502,6 @@
     "question": "Name a Big (PF/C) or Forward (PF/SF) from the Orlando Magic who played in the 2010s not named Dwight Howard.",
     "filterCriteria": {
       "pos": "F/C",
-      "team": "ORL",
-      "playedInDecade": 2010,
-      "exclude": [
-        "Dwight Howard"
-      ]
-    }
-  },
-  {
-    "id": "q_c_574",
-    "type": "C",
-    "difficulty": "warmup",
-    "theme": "franchise",
-    "decadeLabel": "2010s",
-    "question": "Name a Big (C/PF) from the Orlando Magic who played in the 2010s not named Dwight Howard.",
-    "filterCriteria": {
-      "pos": "C",
       "team": "ORL",
       "playedInDecade": 2010,
       "exclude": [
@@ -11140,22 +10628,6 @@
       "playedInDecade": 2000,
       "exclude": [
         "Gary Payton",
-        "Kobe Bryant"
-      ]
-    }
-  },
-  {
-    "id": "q_w_624",
-    "type": "W",
-    "difficulty": "warmup",
-    "theme": "franchise",
-    "decadeLabel": "2000s",
-    "question": "Name a Wing (SF or SG) from the Los Angeles Lakers who played in the 2000s not named Kobe Bryant.",
-    "filterCriteria": {
-      "pos": "W",
-      "team": "LAL",
-      "playedInDecade": 2000,
-      "exclude": [
         "Kobe Bryant"
       ]
     }

@@ -25,11 +25,25 @@ const normalizeString = (str: string) => {
   return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 };
 
+// EXACT player key — keeps generational suffixes (jr/sr/ii/iii) so a son does NOT
+// collide with his father. Fixes the bug where e.g. "Patrick Ewing Jr." mapped onto
+// "Patrick Ewing" and wrongly inherited his awards (14 father/son pairs in the data).
 const getPlayerKey = (name: string) => {
   return normalizeString(name)
     .toLowerCase()
+    .replace(/[^a-z]/g, '');
+};
+
+// Suffix-stripped key — used ONLY as a controlled fallback for the handful of players
+// whose award-CSV name omits a suffix that players.json keeps (e.g. CSV "Dennis Smith"
+// vs player "Dennis Smith Jr."). The fallback is applied only when a stripped key maps
+// to EXACTLY ONE player (see strippedKeyIsAmbiguous), so father/son pairs never match
+// via stripping.
+const getStrippedKey = (name: string) => {
+  return normalizeString(name)
+    .toLowerCase()
     .replace(/[^a-z]/g, '')
-    .replace(/(jr|sr|iii|ii)$/, '');
+    .replace(/(jr|sr|iii|ii|iv)$/, '');
 };
 
 const HoopIcon = ({ className }: { className?: string }) => (
@@ -259,6 +273,36 @@ const parseAwardsCsv = (csvText: string, type: string) => {
 parseAwardsCsv(allNbaCsv, 'All-NBA');
 parseAwardsCsv(allRookieCsv, 'All-Rookie');
 parseAwardsCsv(allDefenseCsv, 'All-Defense');
+
+// The set of exact (suffix-preserving) keys that have a REAL roster player. Built once
+// after player data loads (see populateRosterKeys). Used to decide when the stripped
+// fallback is safe: we only borrow awards via a stripped key if NO other distinct roster
+// player owns the bare (un-suffixed) name — i.e. there is no separate father/son.
+const rosterExactKeys = new Set<string>();
+let rosterKeysReady = false;
+const populateRosterKeys = (allPlayers: { name: string }[]) => {
+  rosterExactKeys.clear();
+  allPlayers.forEach(p => rosterExactKeys.add(getPlayerKey(p.name)));
+  rosterKeysReady = true;
+};
+
+// Resolve a player's award record WITHOUT father/son cross-contamination.
+// 1) Exact-name match (keeps "Patrick Ewing" and "Patrick Ewing Jr." separate).
+// 2) Fallback: only for a SUFFIXED name whose bare form is NOT itself a distinct roster
+//    player. This matches the handful of inconsistent-suffix cases (award CSV omits a
+//    suffix players.json keeps, e.g. "Dennis Smith" award -> "Dennis Smith Jr." player,
+//    where no plain "Dennis Smith" exists) while NEVER letting a Jr. borrow a father's
+//    awards (because the father IS a distinct roster player under the bare name).
+const getPlayerAwards = (playerName: string): Record<string, { season: string, team: string }[]> | undefined => {
+  const exact = getPlayerKey(playerName);
+  if (awardsBank[exact]) return awardsBank[exact];
+  const stripped = getStrippedKey(playerName);
+  // Only consider a fallback when the name actually HAD a suffix (stripped differs).
+  if (stripped === exact) return undefined;
+  // If a distinct roster player owns the bare name, do NOT borrow (that's the father).
+  if (rosterKeysReady && rosterExactKeys.has(stripped)) return undefined;
+  return awardsBank[stripped];
+};
 
 type Player = {
   id: string;
@@ -604,6 +648,146 @@ const FRANCHISES = [
   { code: 'WAS', name: 'Washington Wizards' }
 ];
 
+// ---------------------------------------------------------------------------
+// "Close, but..." wrong-answer hint. On a rejected guess, we re-check the
+// question's rules against the player's BEST near-miss season (the one failing
+// the fewest rules). If EXACTLY ONE rule fails, we return a gentle, tailored
+// hint naming that single miss; otherwise null (the caller shows trash-talk).
+// This mirrors the accept/reject logic in handleSelectPlayer so a hint can
+// never contradict the verdict. No scoring effect — message only.
+// ---------------------------------------------------------------------------
+const FRANCHISE_NAME: Record<string, string> = Object.fromEntries(
+  FRANCHISES.map(f => [f.code, f.name])
+);
+const POS_GROUP_LABEL: Record<string, string> = {
+  G: 'Guard', W: 'Wing', F: 'Forward', C: 'Big', 'F/C': 'Forward or Center', FC: 'Forward or Center',
+};
+const POS_GROUP_SET: Record<string, string[]> = {
+  G: ['PG', 'SG'], W: ['SF', 'SG'], F: ['SF', 'PF'], C: ['C', 'PF'],
+  'F/C': ['SF', 'PF', 'C'], FC: ['SF', 'PF', 'C'],
+};
+
+type HintProbe = { team: boolean; decade: boolean; pos: boolean; stat: boolean };
+
+const getCloseHint = (
+  player: Player,
+  fc: FilterCriteria,
+  getStarYears: (name: string, team: string) => Set<number>
+): string | null => {
+  if (!fc) return null;
+
+  // Player-level hard fails (not season-dependent). If any of these fail, the
+  // guess isn't a "position/era near-miss" we hint on — except the exclude case,
+  // which is its own fun message.
+  if (fc.exclude && fc.exclude.some(n => normalizeString(player.name).toLowerCase().includes(normalizeString(n).toLowerCase()))) {
+    return `Nice try — ${player.name} is exactly who we're excluding here! Dig deeper.`;
+  }
+  // Draft/team-count constraints: if the player fails one of these, it's not the
+  // kind of "close" we hint on (keep it simple — fall back to trash-talk).
+  if (fc.minTeams !== undefined) {
+    const uniq = new Set(player.seasons.map(s => (s.team || '').toUpperCase()).filter(t => t && t !== 'TOT' && t !== 'N/A' && !/^\d+TM$/.test(t))).size;
+    if (uniq < fc.minTeams) return null;
+  }
+  if (fc.maxPick !== undefined && (player.draftPick === null || player.draftPick > fc.maxPick)) return null;
+  if (fc.minPick !== undefined && ((player.draftPick === null ? 999 : player.draftPick) < fc.minPick)) return null;
+  if (fc.pick !== undefined && player.draftPick !== fc.pick) return null;
+  if (fc.draftYear !== undefined && player.draftYear !== fc.draftYear) return null;
+  // Award questions (All-Star/All-NBA/All-Defense) are not part of the hint MVP — their
+  // miss reasons are subtle (made the team or not). Skip hinting so we never show a
+  // misleading "team/era" hint when the real miss was the award. Falls back to trash-talk.
+  if (fc.award) return null;
+
+  const posKey = fc.pos && POS_GROUP_SET[fc.pos] ? fc.pos : null;
+  const wantPos = posKey ? POS_GROUP_SET[posKey] : null;
+
+  // Evaluate each season; record which of {team, decade, pos, stat} it fails.
+  // We only hint when the BEST near-miss season fails EXACTLY ONE of these.
+  let best: { fails: number; rank: number; probe: HintProbe; season: SeasonData } | null = null;
+  for (const s of player.seasons) {
+    const nteam = TEAM_ALIASES[s.team] || s.team;
+    const posArr = s.pos ? s.pos.split('-').map(p => p.trim()) : [];
+    const probe: HintProbe = { team: false, decade: false, pos: false, stat: false };
+
+    if (fc.team && nteam !== fc.team) probe.team = true;
+    if (fc.conf && TEAM_CONFERENCES[nteam] !== fc.conf) probe.team = true; // conf treated as a team/location miss
+    if (fc.teammateWith) {
+      const y = parseInt(s.season, 10);
+      const shared = nteam === fc.teammateWith.team && y >= fc.teammateWith.minYear && y <= fc.teammateWith.maxYear && getStarYears(fc.teammateWith.name, fc.teammateWith.team).has(y);
+      if (!shared) probe.team = true;
+    }
+    if (fc.playedInDecade !== undefined && !s.season.startsWith(String(fc.playedInDecade).substring(0, 3))) probe.decade = true;
+    if (wantPos && !posArr.some(p => wantPos.includes(p))) probe.pos = true;
+
+    const g = s.g || 0;
+    const statFail = (
+      (fc.minPts !== undefined && (g === 0 || s.pts / g < fc.minPts)) ||
+      (fc.maxPts !== undefined && (g === 0 || s.pts / g >= fc.maxPts)) ||
+      (fc.minTrb !== undefined && (g === 0 || s.trb / g < fc.minTrb)) ||
+      (fc.minAst !== undefined && (g === 0 || s.ast / g < fc.minAst)) ||
+      (fc.minStl !== undefined && (g === 0 || s.stl / g < fc.minStl)) ||
+      (fc.minBlk !== undefined && (g === 0 || s.blk / g < fc.minBlk)) ||
+      (fc.minBlkOrStl !== undefined && (g === 0 || (s.blk / g < fc.minBlkOrStl && s.stl / g < fc.minBlkOrStl)))
+    );
+    if (statFail) probe.stat = true;
+
+    const failCount = (probe.team ? 1 : 0) + (probe.decade ? 1 : 0) + (probe.pos ? 1 : 0) + (probe.stat ? 1 : 0);
+    // Among seasons with the same (minimal) fail count, prefer the one whose single
+    // miss ranks higher by: pos(0) > team(1) > decade(2) > stat(3). Lower rank wins.
+    const singleRank = failCount === 1
+      ? (probe.pos ? 0 : probe.team ? 1 : probe.decade ? 2 : 3)
+      : 9;
+    if (
+      best === null ||
+      failCount < best.fails ||
+      (failCount === best.fails && failCount === 1 && singleRank < best.rank)
+    ) {
+      best = { fails: failCount, rank: singleRank, probe, season: s };
+    }
+  }
+
+  if (!best || best.fails !== 1) return null; // 0 = would've been valid; >=2 = not close
+
+  const name = player.name;
+  const posLabel = posKey ? POS_GROUP_LABEL[posKey] : 'that position';
+  const teamLabel = fc.team ? (FRANCHISE_NAME[fc.team] || fc.team) : (fc.conf === 'EAST' ? 'the Eastern Conference' : fc.conf === 'WEST' ? 'the Western Conference' : 'that team');
+  const decLabel = fc.playedInDecade !== undefined ? `${fc.playedInDecade}s` : 'that era';
+  const seasonPos = best.season.pos || '';
+
+  if (best.probe.pos) {
+    return `Close — ${name} played ${seasonPos} for ${teamLabel} in the ${decLabel}, not ${posLabel}.`;
+  }
+  if (best.probe.team) {
+    // "the Milwaukee Bucks" reads better than "Milwaukee Bucks"; conf labels already include "the".
+    const teamForClause = (fc.team && FRANCHISE_NAME[fc.team]) ? `the ${teamLabel}` : teamLabel;
+    return `Close — ${name} was a ${posLabel} in the ${decLabel}, just not for ${teamForClause}.`;
+  }
+  if (best.probe.decade) {
+    return `Close — ${name} played ${posLabel} for ${teamLabel}, but not in the ${decLabel}.`;
+  }
+  if (best.probe.stat) {
+    // Report the player's best mark on the relevant stat vs the threshold.
+    let detail = '';
+    if (fc.minTrb !== undefined) detail = `${bestStat(player, 'trb')} rebounds a game, short of the ${fc.minTrb}+`;
+    else if (fc.minPts !== undefined) detail = `${bestStat(player, 'pts')} points a game, short of the ${fc.minPts}+`;
+    else if (fc.minAst !== undefined) detail = `${bestStat(player, 'ast')} assists a game, short of the ${fc.minAst}+`;
+    else if (fc.minStl !== undefined) detail = `${bestStat(player, 'stl')} steals a game, short of the ${fc.minStl}+`;
+    else if (fc.minBlk !== undefined) detail = `${bestStat(player, 'blk')} blocks a game, short of the ${fc.minBlk}+`;
+    else if (fc.minBlkOrStl !== undefined) detail = `${bestStat(player, 'blk')} blocks / ${bestStat(player, 'stl')} steals a game, short of the ${fc.minBlkOrStl}+`;
+    else return `Close — ${name} fits, but didn't hit the stat line this question needs.`;
+    return `Close — ${name}'s best was ${detail} this question needs.`;
+  }
+  return null;
+};
+
+// Best per-game mark for a stat across a player's career (used in stat hints).
+const bestStat = (player: Player, key: 'pts' | 'trb' | 'ast' | 'stl' | 'blk'): string => {
+  let best = 0;
+  player.seasons.forEach(s => {
+    if (s.g) { const v = (s as any)[key] / s.g; if (v > best) best = v; }
+  });
+  return best.toFixed(1);
+};
+
 const DECADES = [
   { label: '1980s', val: 1980 },
   { label: '1990s', val: 1990 },
@@ -917,7 +1101,7 @@ export default function App() {
       }
 
       if (fc.award && fc.award !== 'All-Star') {
-        const pAwards = awardsBank[getPlayerKey(player.name)]?.[fc.award] || [];
+        const pAwards = getPlayerAwards(player.name)?.[fc.award] || [];
         if (pAwards.length === 0) return;
         const hasAward = pAwards.some(aw => {
           let pass = true;
@@ -992,7 +1176,7 @@ export default function App() {
           if (fc.award === 'All-Star') {
             if (player.allStarYears.length < fc.minAwards) return;
           } else {
-            const pAwards = awardsBank[getPlayerKey(player.name)]?.[fc.award] || [];
+            const pAwards = getPlayerAwards(player.name)?.[fc.award] || [];
             if (pAwards.length < fc.minAwards) return;
           }
         }
@@ -1002,7 +1186,7 @@ export default function App() {
           if (fc.awardSeason && normalizeSeason(formatSeasonDisplay(season.season)) !== normalizeSeason(fc.awardSeason)) return;
           if (fc.awardDecade && (asgYear < Number(fc.awardDecade) || asgYear >= Number(fc.awardDecade) + 10)) return;
         } else if (fc.award) {
-          const pAwards = awardsBank[getPlayerKey(player.name)]?.[fc.award] || [];
+          const pAwards = getPlayerAwards(player.name)?.[fc.award] || [];
           const selectedNormalized = normalizeSeason(formatSeasonDisplay(season.season));
           const hasAward = pAwards.some(aw => {
             let pass = true;
@@ -1781,6 +1965,7 @@ export default function App() {
             allStarYears: p[6] ?? []
           };
         });
+        populateRosterKeys(players); // enable safe suffix-fallback for award lookups
         setData(players);
         setDataLoaded(true);
       })
@@ -1917,7 +2102,7 @@ export default function App() {
                     if (fc.award === 'All-Star') {
                         if (player.allStarYears.length < fc.minAwards) isValid = false;
                     } else {
-                        const pAwards = awardsBank[getPlayerKey(player.name)]?.[fc.award] || [];
+                        const pAwards = getPlayerAwards(player.name)?.[fc.award] || [];
                         if (pAwards.length < fc.minAwards) isValid = false;
                     }
                 }
@@ -1927,7 +2112,7 @@ export default function App() {
                   if (isValid && fc.awardSeason && selectedNormalized !== normalizeSeason(fc.awardSeason)) isValid = false;
                   if (isValid && fc.awardDecade && (asgYear < Number(fc.awardDecade) || asgYear >= Number(fc.awardDecade) + 10)) isValid = false;
                 } else if (fc.award) {
-                  const pAwards = awardsBank[getPlayerKey(player.name)]?.[fc.award] || [];
+                  const pAwards = getPlayerAwards(player.name)?.[fc.award] || [];
                   const hasAward = pAwards.some(aw => {
                     let pass = true;
                     if (fc.awardDecade) {
@@ -1995,30 +2180,51 @@ export default function App() {
 
     if (eligibleSeasons.length === 0) {
         const newPenaltyCount = (Math.abs(slotPenalties[activeDraftIndex]) + 5) / 5;
-        
-        let errorTitle = "";
-        if (newPenaltyCount === 3) {
-            errorTitle = "Be sure to call your daddy for this question. And by daddy we mean ours: basketball reference";
-        } else {
+
+        // Message cycle, repeating every 4 wrong guesses on this slot:
+        //   1st, 2nd -> Hint (if the guess is a 1-rule "close" miss; else trash-talk)
+        //   3rd      -> Basketball Reference easter egg (always)
+        //   4th      -> Trash-talk (always)
+        // cyclePos is 1..4 derived from the running wrong-guess count.
+        const cyclePos = ((newPenaltyCount - 1) % 4) + 1;
+
+        const pickTrashTalk = () => {
             const trashTalk = [
                 "Airball -- Not even close!",
                 "Wrong! Get that weak stuff out of here",
                 "Brick -- Try again!",
                 "Incorrect -- Go back to the drawing board"
             ];
-            
-            // Filter out the last message so it doesn't repeat
-            const availableTalk = lastTrashTalkRef.current 
-                ? trashTalk.filter(msg => msg !== lastTrashTalkRef.current) 
+            const availableTalk = lastTrashTalkRef.current
+                ? trashTalk.filter(msg => msg !== lastTrashTalkRef.current)
                 : trashTalk;
-                
-            const selectedTalk = availableTalk[Math.floor(Math.random() * availableTalk.length)];
-            
-            lastTrashTalkRef.current = selectedTalk;
-            errorTitle = selectedTalk;
+            const selected = availableTalk[Math.floor(Math.random() * availableTalk.length)];
+            lastTrashTalkRef.current = selected;
+            return selected;
+        };
+
+        let errorTitle = "";
+        let errorSubtitle: string | undefined = "player selected does not meet draft question criteria";
+
+        if (cyclePos === 3) {
+            // Easter egg slot (3rd, 7th, 11th...) — always, ignores closeness.
+            errorTitle = "Be sure to call your daddy for this question. And by daddy we mean ours: basketball reference";
+        } else if (cyclePos === 4) {
+            // Trash-talk slot (4th, 8th...) — always.
+            errorTitle = pickTrashTalk();
+        } else {
+            // Hint slots (1st, 2nd, 5th, 6th...). Option A: hints are EARNED — only
+            // show a hint for a genuine 1-rule "close" miss; otherwise trash-talk.
+            const hint = fc ? getCloseHint(player, fc, getStarSeasonYears) : null;
+            if (hint) {
+                errorTitle = hint;
+                errorSubtitle = undefined; // the hint is self-explanatory; no generic subtitle
+            } else {
+                errorTitle = pickTrashTalk();
+            }
         }
-        
-        setUiError({ title: errorTitle, subtitle: "player selected does not meet draft question criteria" });
+
+        setUiError({ title: errorTitle, subtitle: errorSubtitle });
         setSlotPenalties(current => {
             const newPenalties = [...current];
             newPenalties[activeDraftIndex] -= 5;
