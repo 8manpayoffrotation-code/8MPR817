@@ -667,7 +667,16 @@ const POS_GROUP_SET: Record<string, string[]> = {
   'F/C': ['SF', 'PF', 'C'], FC: ['SF', 'PF', 'C'],
 };
 
-type HintProbe = { team: boolean; decade: boolean; pos: boolean; stat: boolean };
+type HintProbe = { team: boolean; decade: boolean; pos: boolean; stat: boolean; draft: boolean };
+
+// Ordinal for draft hints: 1->"1st", 3->"3rd", 11->"11th", 28->"28th".
+// Teens (11/12/13) are always "th"; otherwise key off the last digit.
+const ordinal = (n: number): string => {
+  const tens = n % 100;
+  if (tens >= 11 && tens <= 13) return `${n}th`;
+  const suffix = { 1: 'st', 2: 'nd', 3: 'rd' }[n % 10] || 'th';
+  return `${n}${suffix}`;
+};
 
 const getCloseHint = (
   player: Player,
@@ -688,10 +697,16 @@ const getCloseHint = (
     const uniq = new Set(player.seasons.map(s => (s.team || '').toUpperCase()).filter(t => t && t !== 'TOT' && t !== 'N/A' && !/^\d+TM$/.test(t))).size;
     if (uniq < fc.minTeams) return null;
   }
-  if (fc.maxPick !== undefined && (player.draftPick === null || player.draftPick > fc.maxPick)) return null;
-  if (fc.minPick !== undefined && ((player.draftPick === null ? 999 : player.draftPick) < fc.minPick)) return null;
-  if (fc.pick !== undefined && player.draftPick !== fc.pick) return null;
-  if (fc.draftYear !== undefined && player.draftYear !== fc.draftYear) return null;
+  // Draft-pick miss is a PLAYER-level condition (one fixed number, not season-dependent).
+  // We compute it once and fold it into the per-season fail count, so a player who misses
+  // ONLY on draft (right pos+decade, wrong pick) earns a tailored draft hint, while a
+  // draft+something miss correctly falls through to trash-talk (2+ fails).
+  const pick = player.draftPick;
+  let draftFail = false;
+  if (fc.maxPick !== undefined && (pick === null || pick > fc.maxPick)) draftFail = true;
+  if (fc.minPick !== undefined && ((pick === null ? 999 : pick) < fc.minPick)) draftFail = true;
+  if (fc.pick !== undefined && pick !== fc.pick) draftFail = true;
+  if (fc.draftYear !== undefined && player.draftYear !== fc.draftYear) draftFail = true;
   // Award questions (All-Star/All-NBA/All-Defense) are not part of the hint MVP — their
   // miss reasons are subtle (made the team or not). Skip hinting so we never show a
   // misleading "team/era" hint when the real miss was the award. Falls back to trash-talk.
@@ -711,7 +726,7 @@ const getCloseHint = (
   for (const s of player.seasons) {
     const nteam = TEAM_ALIASES[s.team] || s.team;
     const posArr = s.pos ? s.pos.split('-').map(p => p.trim()) : [];
-    const probe: HintProbe = { team: false, decade: false, pos: false, stat: false };
+    const probe: HintProbe = { team: false, decade: false, pos: false, stat: false, draft: draftFail };
 
     if (fc.team && nteam !== fc.team) probe.team = true;
     if (fc.conf && TEAM_CONFERENCES[nteam] !== fc.conf) probe.team = true; // conf treated as a team/location miss
@@ -735,11 +750,11 @@ const getCloseHint = (
     );
     if (statFail) probe.stat = true;
 
-    const failCount = (probe.team ? 1 : 0) + (probe.decade ? 1 : 0) + (probe.pos ? 1 : 0) + (probe.stat ? 1 : 0);
+    const failCount = (probe.team ? 1 : 0) + (probe.decade ? 1 : 0) + (probe.pos ? 1 : 0) + (probe.stat ? 1 : 0) + (probe.draft ? 1 : 0);
     // Among seasons with the same (minimal) fail count, prefer the one whose single
-    // miss ranks higher by: pos(0) > team(1) > decade(2) > stat(3). Lower rank wins.
+    // miss ranks higher by: pos(0) > team(1) > decade(2) > draft(3) > stat(4). Lower wins.
     const singleRank = failCount === 1
-      ? (probe.pos ? 0 : probe.team ? 1 : probe.decade ? 2 : 3)
+      ? (probe.pos ? 0 : probe.team ? 1 : probe.decade ? 2 : probe.draft ? 3 : 4)
       : 9;
     if (
       best === null ||
@@ -754,20 +769,54 @@ const getCloseHint = (
 
   const name = player.name;
   const posLabel = posKey ? POS_GROUP_LABEL[posKey] : 'that position';
-  const teamLabel = fc.team ? (FRANCHISE_NAME[fc.team] || fc.team) : (fc.conf === 'EAST' ? 'the Eastern Conference' : fc.conf === 'WEST' ? 'the Western Conference' : 'that team');
   const decLabel = fc.playedInDecade !== undefined ? `${fc.playedInDecade}s` : 'that era';
   const seasonPos = best.season.pos || '';
+  // Team/conference context — only present on team or conference questions. On
+  // team-less questions (draft/stat), hints must NOT say "that team".
+  const hasTeam = !!fc.team;
+  const hasConf = !!fc.conf && !fc.team;
+  // A trailing "for <team>" fragment, or '' when the question has no team/conf.
+  const forTeam = hasTeam
+    ? ` for the ${FRANCHISE_NAME[fc.team!] || fc.team}`
+    : hasConf
+      ? ` in the ${fc.conf === 'EAST' ? 'Eastern' : 'Western'} Conference`
+      : '';
 
   if (best.probe.pos) {
-    return `Close — ${name} played ${friendlyPosWord(seasonPos)} for ${teamLabel} in the ${decLabel}, not ${posLabel}.`;
+    // e.g. "...played center in the 2020s, not Forward." (no team) /
+    //      "...played SF for the Toronto Raptors in the 1990s, not Guard." (team)
+    return `Close — ${name} played ${friendlyPosWord(seasonPos)}${forTeam} in the ${decLabel}, not ${posLabel}.`;
   }
   if (best.probe.team) {
-    // "the Milwaukee Bucks" reads better than "Milwaukee Bucks"; conf labels already include "the".
-    const teamForClause = (fc.team && FRANCHISE_NAME[fc.team]) ? `the ${teamLabel}` : teamLabel;
+    // Only reachable when the question HAS a team or conf (otherwise probe.team is false).
+    const teamForClause = hasTeam ? `the ${FRANCHISE_NAME[fc.team!] || fc.team}` : `the ${fc.conf === 'EAST' ? 'Eastern' : 'Western'} Conference`;
     return `Close — ${name} was a ${posLabel} in the ${decLabel}, just not for ${teamForClause}.`;
   }
   if (best.probe.decade) {
-    return `Close — ${name} played ${posLabel} for ${teamLabel}, but not in the ${decLabel}.`;
+    return `Close — ${name} played ${posLabel}${forTeam}, but not in the ${decLabel}.`;
+  }
+  if (best.probe.draft) {
+    // Context fragment of what the player DID match (reads "played Forward in the 2020s"),
+    // then the draft miss. Direction depends on the rule: maxPick miss = drafted too LOW,
+    // minPick miss = drafted too HIGH (not a steal). pick = exact-slot miss.
+    const did = `played ${posLabel}${forTeam}${fc.playedInDecade !== undefined ? ` in the ${decLabel}` : ''}`;
+    if (pick === null) {
+      return `Close — ${name} ${did}, but went undrafted — this question wants a drafted player.`;
+    }
+    if (fc.maxPick !== undefined && pick > fc.maxPick) {
+      const tier = fc.maxPick === 5 ? 'Top 5' : fc.maxPick === 10 ? 'Top 10' : `Top ${fc.maxPick}`;
+      return `Close — ${name} ${did}, but went ${ordinal(pick)} — outside the ${tier}.`;
+    }
+    if (fc.minPick !== undefined && pick < fc.minPick) {
+      return `Close — ${name} ${did}, but was the ${ordinal(pick)} pick — too high; this wants a draft steal (pick ${fc.minPick}+).`;
+    }
+    if (fc.pick !== undefined && pick !== fc.pick) {
+      return `Close — ${name} ${did}, but went ${ordinal(pick)}, not ${ordinal(fc.pick)}.`;
+    }
+    if (fc.draftYear !== undefined && player.draftYear !== fc.draftYear) {
+      return `Close — ${name} ${did}, but was drafted in ${player.draftYear}, not ${fc.draftYear}.`;
+    }
+    return `Close — ${name} ${did}, but his draft slot doesn't fit this question.`;
   }
   if (best.probe.stat) {
     // Report the player's best mark on the relevant stat vs the threshold.
